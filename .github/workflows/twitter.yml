@@ -1,0 +1,42 @@
+name: Daily Tweet Scheduler Public
+
+on:
+  schedule:
+    - cron: '50 07 * * *'  # To make it run daily at roughly 8:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2  # Checkout the code
+
+      # Add a debugging step to check if secrets are passed
+      - name: Debugging, Check if secrets are available
+        run: |
+          echo "Checking if secrets are set"
+          if [ -z "${{ secrets.API_KEY }}" ]; then echo "API_KEY is NOT set"; else echo "API_KEY is set"; fi
+          if [ -z "${{ secrets.BEARER_TOKEN }}" ]; then echo "BEARER_TOKEN is NOT set"; else echo "BEARER_TOKEN is set"; fi
+          if [ -z "${{ secrets.API_SECRET_KEY }}" ]; then echo "API_SECRET_KEY is NOT set"; else echo "API_SECRET_KEY is set"; fi
+          if [ -z "${{ secrets.ACCESS_TOKEN }}" ]; then echo "ACCESS_TOKEN is NOT set"; else echo "ACCESS_TOKEN is set"; fi
+          if [ -z "${{ secrets.ACCESS_TOKEN_SECRET }}" ]; then echo "ACCESS_TOKEN_SECRET is NOT set"; else echo "ACCESS_TOKEN_SECRET is set"; fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
+
+      - name: Run the Python script
+        run: |
+          python ashes_bot.py  # Run the Python script
+        env:
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+          API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
