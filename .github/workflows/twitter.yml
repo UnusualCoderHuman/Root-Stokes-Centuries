@@ -33,7 +33,7 @@ jobs:
 
       - name: Run the Python script
         run: |
-          python ashes_bot.py  # Run the Python script
+          python root_stokes.py  # Run the Python script
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
           API_KEY: ${{ secrets.API_KEY }}
