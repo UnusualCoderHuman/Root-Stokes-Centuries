@@ -1,39 +1,44 @@
-name: Daily Tweet Scheduler Public
+name: Daily Tweet Scheduler
 
 on:
   schedule:
-    - cron: '50 07 * * *'  # To make it run daily at roughly 8:00 AM UTC
-  workflow_dispatch:
+    - cron: '50 07 * * *'  # Runs daily at 8:00 AM UTC
+  workflow_dispatch:  # Allows manual trigger from the Actions tab
 
 jobs:
   tweet:
     runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v2  # Checkout the code
 
-      # Add a debugging step to check if secrets are passed
-      - name: Debugging, Check if secrets are available
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Debugging step to check if secrets are available
+      - name: Debugging Check if secrets are available
         run: |
-          echo "Checking if secrets are set"
+          echo "Checking if secrets are available..."
           if [ -z "${{ secrets.API_KEY }}" ]; then echo "API_KEY is NOT set"; else echo "API_KEY is set"; fi
           if [ -z "${{ secrets.BEARER_TOKEN }}" ]; then echo "BEARER_TOKEN is NOT set"; else echo "BEARER_TOKEN is set"; fi
           if [ -z "${{ secrets.API_SECRET_KEY }}" ]; then echo "API_SECRET_KEY is NOT set"; else echo "API_SECRET_KEY is set"; fi
           if [ -z "${{ secrets.ACCESS_TOKEN }}" ]; then echo "ACCESS_TOKEN is NOT set"; else echo "ACCESS_TOKEN is set"; fi
           if [ -z "${{ secrets.ACCESS_TOKEN_SECRET }}" ]; then echo "ACCESS_TOKEN_SECRET is NOT set"; else echo "ACCESS_TOKEN_SECRET is set"; fi
 
+      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.9'  # Ensure compatibility with dependencies
 
+      # Install dependencies from requirements.txt
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt  # Install dependencies from requirements.txt
+          pip install -r requirements.txt
 
+      # Run the Python script
       - name: Run the Python script
         run: |
-          python root_stokes.py  # Run the Python script
+          python root_stokes.py  # Execute the tweet script
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
           API_KEY: ${{ secrets.API_KEY }}
