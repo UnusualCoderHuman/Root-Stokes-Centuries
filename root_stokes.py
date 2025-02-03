@@ -1,6 +1,8 @@
 import tweepy
 import os
 from datetime import date, datetime
+import requests
+from bs4 import BeautifulSoup
 
 # Fetch Twitter API credentials from environment variables
 API_KEY = os.getenv('API_KEY')
