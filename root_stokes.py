@@ -16,10 +16,51 @@ client = tweepy.Client(
     access_token=ACCESS_TOKEN,
     access_token_secret=ACCESS_TOKEN_SECRET
 )
+# URL of the Cricinfo for Root ODI page
+url = "https://stats.espncricinfo.com/ci/engine/player/303669.html?class=2;filter=advanced;orderby=start;orderbyad=reverse;runsmin1=100;runsval1=runs;template=results;type=batting;view=innings"
+
+# Add a custom User-Agent header
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
+# Make the GET request with headers
+response = requests.get(url, headers=headers)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Parse the HTML content using BeautifulSoup
+    soup = BeautifulSoup(response.content, "html.parser")
+    
+    # Find the table with the innings data (Table 4 in your case)
+    innings_table = soup.find_all("table", class_="engineTable")[3]  # Fourth table
+    
+    # Get the first date in the list
+    latest_date = innings_table.find_all("tr", class_="data1")[0].find_all("td")[-2].get_text(strip=True)  # Data rows)
+      
+    
+    if latest_date:
+        # Convert the string dates into datetime objects for sorting
+
+        date_format = "%d %b %Y"  # The format in which the date appears (e.g., "23 Jun 2022")
+        
+        # Convert each date string into a datetime object
+        latest_start_date = datetime.strptime(latest_date, date_format) 
+    
+        # print(latest_start_date)
+        
+        # Print the latest start date in the desired format
+        print(f"Latest Start Date: {latest_start_date.strftime('%d %b %Y')}")
+    else:
+        print("No start dates found.")
+else:
+    print(f"Failed to fetch the page. Status code: {response.status_code}")
+
+
 
 # Starting number and the date tracking the first tweet
 root_last_test_century = date(2024, 12, 8)
-root_last_ODI_century = date(2019,6,14)
+root_last_ODI_century = latest_start_date.date()
 stokes_last_century = date(2023,11,8)
 stokes_last_test_century= date(2023,7,2)
 stokes_last_test_century_in_winning_cause = date(2022,8,26)
