@@ -88,7 +88,7 @@ for key in urls:
 
     if last_recorded_date is None or latest_start_date != last_recorded_date:
         # If scraped start date is within 5 days before hardcoded date, assume same match
-        if latest_start_date < hardcoded_date and (hardcoded_date - latest_start_date).days <= 5:
+        if latest_start_date <= hardcoded_date and (hardcoded_date - latest_start_date).days <= 5:
             print(f"[{key}] Start date {latest_start_date} is close to hardcoded date {hardcoded_date}, keeping hardcoded date.")
             milestone_dates[key] = hardcoded_date
         else:
