@@ -4,7 +4,7 @@ from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
 
-# Twitter API setup
+# --- Twitter API setup ---
 API_KEY = os.getenv('API_KEY')
 API_SECRET_KEY = os.getenv('API_SECRET_KEY')
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
@@ -19,7 +19,7 @@ client = tweepy.Client(
     access_token_secret=ACCESS_TOKEN_SECRET
 )
 
-# --- Function to read last known date from file ---
+# --- Functions for file I/O ---
 def load_last_recorded_date(filename):
     try:
         with open(filename, "r") as f:
@@ -27,12 +27,11 @@ def load_last_recorded_date(filename):
     except FileNotFoundError:
         return None
 
-# --- Function to write the newly discovered date ---
 def update_recorded_date(filename, new_date):
     with open(filename, "w") as f:
         f.write(new_date.strftime("%Y-%m-%d"))
 
-# --- Function to fetch latest match start date from a Cricinfo URL ---
+# --- Scraper for match start date ---
 def fetch_latest_start_date(url):
     headers = {
         "User-Agent": "Mozilla/5.0"
@@ -60,7 +59,7 @@ urls = {
     "stokes_winning": "https://stats.espncricinfo.com/ci/engine/player/311158.html?class=1;filter=advanced;orderby=start;orderbyad=reverse;result=1;runsmin1=100;runsval1=runs;template=results;type=batting;view=innings"
 }
 
-# --- File mappings for date tracking ---
+# --- File mappings for tracking dates ---
 date_files = {
     "root_odi": "root_odi.txt",
     "root_test": "root_test.txt",
@@ -69,39 +68,37 @@ date_files = {
     "stokes_winning": "stokes_winning.txt"
 }
 
-# --- Default (hardcoded) milestone dates ---
-root_last_test_century = date(2024, 12, 8)
-root_last_ODI_century = date(2025, 6, 1)
-stokes_last_test_century = date(2023, 7, 2)
-stokes_last_century = date(2023, 11, 8)
-stokes_last_winning_cause = date(2022, 8, 26)
-
-# --- Update logic ---
+# --- Initial hardcoded milestone dates ---
 milestone_dates = {
-    "root_odi": root_last_ODI_century,
-    "root_test": root_last_test_century,
-    "stokes_test": stokes_last_test_century,
-    "stokes_all": stokes_last_century,
-    "stokes_winning": stokes_last_winning_cause
+    "root_odi": date(2025, 6, 1),
+    "root_test": date(2024, 12, 8),
+    "stokes_test": date(2023, 7, 2),
+    "stokes_all": date(2023, 11, 8),
+    "stokes_winning": date(2022, 8, 26)
 }
 
+# --- Main update logic with 5-day start-date window ---
 for key in urls:
     latest_start_date = fetch_latest_start_date(urls[key])
     if not latest_start_date:
         continue
 
     last_recorded_date = load_last_recorded_date(date_files[key])
+    hardcoded_date = milestone_dates[key]
 
-    # If no file exists or new date found
     if last_recorded_date is None or latest_start_date != last_recorded_date:
-        print(f"[{key}] New update detected. Using today's date: {date.today().strftime('%d %b %Y')}")
-        milestone_dates[key] = latest_start_date
-
-        update_recorded_date(date_files[key], latest_start_date)
+        # If scraped start date is within 5 days before hardcoded date, assume same match
+        if latest_start_date < hardcoded_date and (hardcoded_date - latest_start_date).days <= 5:
+            print(f"[{key}] Start date {latest_start_date} is close to hardcoded date {hardcoded_date}, keeping hardcoded date.")
+            milestone_dates[key] = hardcoded_date
+        else:
+            print(f"[{key}] New update detected. Using today's date: {date.today().strftime('%d %b %Y')}")
+            milestone_dates[key] = date.today()
+            update_recorded_date(date_files[key], latest_start_date)
     else:
         milestone_dates[key] = last_recorded_date
 
-# --- Prepare tweet ---
+# --- Tweet content creation ---
 def daily_tweet():
     today = date.today()
     timestamp = datetime.now().strftime("%H:%M:%S")
@@ -129,6 +126,7 @@ if __name__ == "__main__":
         daily_tweet()
     except Exception as e:
         print(f"Error: {e}")
+
 
 # import tweepy
 # import os
