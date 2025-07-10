@@ -95,7 +95,8 @@ for key in urls:
     # If no file exists or new date found
     if last_recorded_date is None or latest_start_date != last_recorded_date:
         print(f"[{key}] New update detected. Using today's date: {date.today().strftime('%d %b %Y')}")
-        milestone_dates[key] = date.today()
+        milestone_dates[key] = latest_start_date
+
         update_recorded_date(date_files[key], latest_start_date)
     else:
         milestone_dates[key] = last_recorded_date
