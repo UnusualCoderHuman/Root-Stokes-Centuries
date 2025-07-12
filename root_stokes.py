@@ -71,7 +71,7 @@ date_files = {
 # --- Initial hardcoded milestone dates ---
 milestone_dates = {
     "root_odi": date(2025, 6, 1),
-    "root_test": date(2024, 12, 8),
+    "root_test": date(2025, 7, 11),
     "stokes_test": date(2023, 7, 2),
     "stokes_all": date(2023, 11, 8),
     "stokes_winning": date(2022, 8, 26)
