@@ -4,7 +4,7 @@ from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
 
-# --- Twitter API setup ---
+# Twitter API setup from environment variables
 API_KEY = os.getenv('API_KEY')
 API_SECRET_KEY = os.getenv('API_SECRET_KEY')
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
@@ -19,32 +19,23 @@ client = tweepy.Client(
     access_token_secret=ACCESS_TOKEN_SECRET
 )
 
-# --- Read and write utility functions ---
-def load_last_known_start_date(filename):
+# -------------------- Utilities --------------------
+
+def load_last_recorded_date(filename):
     try:
         with open(filename, "r") as f:
             return datetime.strptime(f.read().strip(), "%Y-%m-%d").date()
     except FileNotFoundError:
         return None
 
-def save_last_known_start_date(filename, new_date):
+def update_recorded_date(filename, new_date):
     with open(filename, "w") as f:
         f.write(new_date.strftime("%Y-%m-%d"))
 
-def load_detection_date(filename):
-    try:
-        with open(filename, "r") as f:
-            return datetime.strptime(f.read().strip(), "%Y-%m-%d").date()
-    except FileNotFoundError:
-        return None
-
-def save_detection_date(filename, date_value):
-    with open(filename, "w") as f:
-        f.write(date_value.strftime("%Y-%m-%d"))
-
-# --- Fetch latest match start date from Cricinfo ---
 def fetch_latest_start_date(url):
-    headers = { "User-Agent": "Mozilla/5.0" }
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         print(f"Failed to fetch {url}")
@@ -59,7 +50,8 @@ def fetch_latest_start_date(url):
         print(f"Error parsing start date from {url}: {e}")
         return None
 
-# --- URLs for stats pages ---
+# -------------------- URLs & Files --------------------
+
 urls = {
     "root_odi": "https://stats.espncricinfo.com/ci/engine/player/303669.html?class=2;filter=advanced;orderby=start;orderbyad=reverse;runsmin1=100;runsval1=runs;template=results;type=batting;view=innings",
     "root_test": "https://stats.espncricinfo.com/ci/engine/player/303669.html?class=1;filter=advanced;orderby=start;orderbyad=reverse;runsmin1=100;runsval1=runs;template=results;type=batting;view=innings",
@@ -68,55 +60,55 @@ urls = {
     "stokes_winning": "https://stats.espncricinfo.com/ci/engine/player/311158.html?class=1;filter=advanced;orderby=start;orderbyad=reverse;result=1;runsmin1=100;runsval1=runs;template=results;type=batting;view=innings"
 }
 
-# --- Filenames for storing start dates and detection dates ---
-start_date_files = {
-    "root_odi": "root_odi_start.txt",
-    "root_test": "root_test_start.txt",
-    "stokes_test": "stokes_test_start.txt",
-    "stokes_all": "stokes_all_start.txt",
-    "stokes_winning": "stokes_winning_start.txt"
-}
-
-detection_date_files = {
-    "root_odi": "root_odi_detected.txt",
-    "root_test": "root_test_detected.txt",
-    "stokes_test": "stokes_test_detected.txt",
-    "stokes_all": "stokes_all_detected.txt",
-    "stokes_winning": "stokes_winning_detected.txt"
-}
-
-# --- Default hardcoded milestone detection dates ---
+# Hardcoded fallback milestone dates
 milestone_dates = {
     "root_test": date(2025, 7, 11),
     "root_odi": date(2025, 6, 1),
     "stokes_test": date(2023, 7, 2),
     "stokes_all": date(2023, 11, 8),
-    "stokes_winning": date(2022, 8, 26)
+    "stokes_winning": date(2022, 8, 26),
 }
 
-# --- Check and update milestone detection dates ---
+# -------------------- Logic --------------------
+
 for key in urls:
     latest_start_date = fetch_latest_start_date(urls[key])
     if not latest_start_date:
         continue
 
-    last_known_start = load_last_known_start_date(start_date_files[key])
-    detection_date = load_detection_date(detection_date_files[key])
+    # File paths
+    start_file = f"{key}_start.txt"
+    detected_file = f"{key}_detected.txt"
 
-    if last_known_start is None or latest_start_date != last_known_start:
-        # New match found — update detection date to today
-        print(f"[{key}] New century detected. Updating detection date to today: {date.today()}")
-        milestone_dates[key] = date.today()
-        save_last_known_start_date(start_date_files[key], latest_start_date)
-        save_detection_date(detection_date_files[key], date.today())
-    else:
-        # Use previously stored detection date or fallback to hardcoded
-        if detection_date:
-            milestone_dates[key] = detection_date
+    # Load existing records
+    last_known_start = load_last_recorded_date(start_file)
+    last_detected_date = load_last_recorded_date(detected_file)
+
+    fallback_date = milestone_dates[key]
+
+    if last_known_start is None or last_detected_date is None:
+        # First time: store both files using hardcoded date
+        update_recorded_date(start_file, fallback_date)
+        update_recorded_date(detected_file, fallback_date)
+        milestone_dates[key] = fallback_date
+        continue
+
+    if latest_start_date != last_known_start:
+        # Only accept a change if it’s clearly a new match, not a reordering
+        if abs((latest_start_date - last_known_start).days) > 5:
+            print(f"[{key}] Detected new century (start: {latest_start_date}) → marking today as detection.")
+            update_recorded_date(start_file, latest_start_date)
+            update_recorded_date(detected_file, date.today())
+            milestone_dates[key] = date.today()
         else:
-            milestone_dates[key] = milestone_dates[key]  # fallback to hardcoded
+            # Ignore tiny date shifts (edge cases)
+            milestone_dates[key] = last_detected_date
+    else:
+        # No change
+        milestone_dates[key] = last_detected_date
 
-# --- Tweeting function ---
+# -------------------- Tweet --------------------
+
 def daily_tweet():
     today = date.today()
     timestamp = datetime.now().strftime("%H:%M:%S")
@@ -132,15 +124,16 @@ def daily_tweet():
 
     try:
         client.create_tweet(text=tweet_text)
-        print("Tweeted successfully!")
+        print("✅ Tweet posted successfully!")
     except Exception as e:
-        print(f"Error while tweeting: {e}")
+        print(f"❌ Error while tweeting: {e}")
 
-# --- Main run ---
+# -------------------- Run --------------------
+
 if __name__ == "__main__":
     try:
         user = client.get_me()
         print(f"Authenticated as: {user.data['username']}")
         daily_tweet()
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error: {e}")
