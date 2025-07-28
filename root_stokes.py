@@ -65,6 +65,7 @@ milestone_dates = {
     "root_test": date(2025, 7, 25),
     "root_odi": date(2025, 6, 1),
     "stokes_test": date(2025, 7, 26),
+    "stokes_all": date(2025,7, 26),
     "stokes_winning": date(2022, 8, 26),
 }
 
