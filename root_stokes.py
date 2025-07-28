@@ -64,8 +64,7 @@ urls = {
 milestone_dates = {
     "root_test": date(2025, 7, 25),
     "root_odi": date(2025, 6, 1),
-    "stokes_test": date(2023, 7, 2),
-    "stokes_all": date(2023, 11, 8),
+    "stokes_test": date(2025, 7, 26),
     "stokes_winning": date(2022, 8, 26),
 }
 
@@ -116,7 +115,6 @@ def daily_tweet():
     tweet_text = (
         f"{(today - milestone_dates['root_test']).days} days since Joe Root's last Test century.\n"
         f"{(today - milestone_dates['root_odi']).days} days since Joe Root's last ODI century.\n"
-        f"{(today - milestone_dates['stokes_all']).days} days since Ben Stokes' last century.\n"
         f"{(today - milestone_dates['stokes_test']).days} days since Ben Stokes' last Test century.\n"
         f"{(today - milestone_dates['stokes_winning']).days} days since Ben Stokes' last Test century in a winning cause.\n"
         f"This was tweeted at {timestamp}"
