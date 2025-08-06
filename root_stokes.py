@@ -62,7 +62,7 @@ urls = {
 
 # Hardcoded fallback milestone dates
 milestone_dates = {
-    "root_test": date(2025, 7, 25),
+    "root_test": date(2025, 8, 3),
     "root_odi": date(2025, 6, 1),
     "stokes_test": date(2025, 7, 26),
     "stokes_all": date(2025,7, 26),
