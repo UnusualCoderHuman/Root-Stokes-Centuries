@@ -63,7 +63,7 @@ urls = {
 # Hardcoded fallback milestone dates
 milestone_dates = {
     "root_test": date(2025, 8, 3),
-    "root_odi": date(2025, 6, 1),
+    "root_odi": date(2025, 9, 7),
     "stokes_test": date(2025, 7, 26),
     "stokes_all": date(2025,7, 26),
     "stokes_winning": date(2022, 8, 26),
@@ -113,13 +113,27 @@ def daily_tweet():
     today = date.today()
     timestamp = datetime.now().strftime("%H:%M:%S")
 
+    # Build Root block
+    root_block = [
+        ((today - milestone_dates['root_test']).days, "Joe Root's last Test century"),
+        ((today - milestone_dates['root_odi']).days, "Joe Root's last ODI century")
+    ]
+    root_block.sort(key=lambda x: x[0])  # sort by days
+    
+    # Build Stokes block
+    stokes_block = [
+        ((today - milestone_dates['stokes_test']).days, "Ben Stokes' last Test century"),
+        ((today - milestone_dates['stokes_winning']).days, "Ben Stokes' last Test century in a winning cause")
+    ]
+    stokes_block.sort(key=lambda x: x[0])  # sort by days
+    
+    # Combine into tweet
     tweet_text = (
-        f"{(today - milestone_dates['root_test']).days} days since Joe Root's last Test century.\n"
-        f"{(today - milestone_dates['root_odi']).days} days since Joe Root's last ODI century.\n"
-        f"{(today - milestone_dates['stokes_test']).days} days since Ben Stokes' last Test century.\n"
-        f"{(today - milestone_dates['stokes_winning']).days} days since Ben Stokes' last Test century in a winning cause.\n"
+        "\n".join([f"{days} days since {desc}." for days, desc in root_block]) + "\n" +
+        "\n".join([f"{days} days since {desc}." for days, desc in stokes_block]) + "\n" +
         f"This was tweeted at {timestamp}"
     )
+
 
     try:
         client.create_tweet(text=tweet_text)
