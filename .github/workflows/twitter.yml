@@ -2,53 +2,43 @@ name: Daily Tweet Scheduler
 
 on:
   schedule:
-    - cron: '40 07 * * *'  # Queue early at 7:45 AM UTC (runs up to 10 min late)
-  workflow_dispatch:        # Manual trigger support
+    - cron: '50 07 * * *'  # Runs daily at 8:00 AM UTC
+  workflow_dispatch:  # Allows manual trigger from the Actions tab
 
 jobs:
   tweet:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      # Check secrets (you can keep or remove this once tested)
-      - name: Debug: Check if secrets are available
+      # Debugging step to check if secrets are available
+      - name: Debugging Check if secrets are available
         run: |
           echo "Checking if secrets are available..."
-          for var in API_KEY BEARER_TOKEN API_SECRET_KEY ACCESS_TOKEN ACCESS_TOKEN_SECRET; do
-            if [ -z "${{ secrets[$var] }}" ]; then
-              echo "$var is NOT set"
-            else
-              echo "$var is set"
-            fi
-          done
+          if [ -z "${{ secrets.API_KEY }}" ]; then echo "API_KEY is NOT set"; else echo "API_KEY is set"; fi
+          if [ -z "${{ secrets.BEARER_TOKEN }}" ]; then echo "BEARER_TOKEN is NOT set"; else echo "BEARER_TOKEN is set"; fi
+          if [ -z "${{ secrets.API_SECRET_KEY }}" ]; then echo "API_SECRET_KEY is NOT set"; else echo "API_SECRET_KEY is set"; fi
+          if [ -z "${{ secrets.ACCESS_TOKEN }}" ]; then echo "ACCESS_TOKEN is NOT set"; else echo "ACCESS_TOKEN is set"; fi
+          if [ -z "${{ secrets.ACCESS_TOKEN_SECRET }}" ]; then echo "ACCESS_TOKEN_SECRET is NOT set"; else echo "ACCESS_TOKEN_SECRET is set"; fi
 
+      # Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.9'  # Ensure compatibility with dependencies
 
+      # Install dependencies from requirements.txt
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      # 🕒 Wait until exactly 8:00 AM UTC
-      - name: Wait until 8:00 AM UTC
+      # Run the Python script
+      - name: Run the Python script
         run: |
-          target=$(date -d '08:00 UTC' +%s)
-          now=$(date -u +%s)
-          sleep_seconds=$(( target - now ))
-          if [ $sleep_seconds -gt 0 ]; then
-            echo "Waiting $sleep_seconds seconds until 8:00 AM UTC..."
-            sleep $sleep_seconds
-          else
-            echo "It's already past 8:00 AM UTC, continuing immediately."
-          fi
-
-      - name: Run tweet script
-        run: python root_stokes.py
+          python root_stokes.py  # Execute the tweet script
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
           API_KEY: ${{ secrets.API_KEY }}
