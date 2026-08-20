@@ -38,7 +38,6 @@ def daily_tweet():
     # Create tweet
     tweet_text = (
         "\n".join([f"{days} days since {desc}." for days, desc in root_block]) + "\n" +
-        "\n".join([f"{days} days since {desc}." for days, desc in stokes_block]) + "\n" +
         f"This was tweeted at {timestamp}"
     )
     
