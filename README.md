@@ -24,4 +24,4 @@ Tweet timing may vary due to GitHub Actions queue delays
 https://x.com/root_stokes_100
 
 ## Note
-Stokes announced his retirement on 28th June 2026. The bot was updated accordingly to remove him.
+Stokes announced his retirement on 28th June 2026. The bot was updated accordingly to remove him but his code was left in commented out so that viewers could still understand what the underlying logic was prior to his retirement.
