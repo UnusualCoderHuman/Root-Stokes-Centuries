@@ -24,4 +24,4 @@ Tweet timing may vary due to GitHub Actions queue delays
 https://x.com/root_stokes_100
 
 ## Note
-Stokes announced his retirement on 28th June 2026. The bot will be updated accordingly to remove him prior to England's next Test commitment.
+Stokes announced his retirement on 28th June 2026. The bot was updated accordingly to remove him.
