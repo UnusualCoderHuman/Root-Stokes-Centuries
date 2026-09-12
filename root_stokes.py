@@ -21,6 +21,9 @@ client = tweepy.Client(
 milestone_dates = {
     "root_test": date(2026, 1, 5),
     "root_odi": date(2026, 1, 27),
+    # Stokes' milestones now redundant as he has retired but still retained to show how the logic of this file would work
+    # "stokes_test": date(2025, 7, 26),
+    # "stokes_winning": date(2022, 8, 26),
 }
 
 # Tweet
@@ -34,10 +37,18 @@ def daily_tweet():
         ((today - milestone_dates['root_odi']).days, "Joe Root's last ODI century")
     ]
     root_block.sort(key=lambda x: x[0])  # sort by days
+
+    # Build Stokes block (redundant now that he has retired but kept so that viewers can understand what the logic was)
+    # stokes_block = [
+    #     ((today - milestone_dates['stokes_test']).days, "Ben Stokes' last Test century"),
+    #     ((today - milestone_dates['stokes_winning']).days, "Ben Stokes' last Test century in a winning cause")
+    # ]
+    # stokes_block.sort(key=lambda x: x[0])  # sort by days
     
     # Create tweet
     tweet_text = (
         "\n".join([f"{days} days since {desc}." for days, desc in root_block]) + "\n" +
+        # "\n".join([f"{days} days since {desc}." for days, desc in stokes_block]) + "\n" +
         f"This was tweeted at {timestamp}"
     )
     
